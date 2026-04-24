@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Support Desk</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <style>
+        body {
+            background-color: #1a1a2e;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            min-height: 100vh;
+            margin: 0;
+            overflow-x: hidden;
+        }
+
+        /* Fire/Spark Canvas */
+        #fireCanvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .form-container {
+            background-color: rgba(255, 255, 255, 0.95);
+            padding: 30px;
+            border-radius: 16px;
+            box-shadow: 0 4px 40px rgba(255, 100, 0, 0.4);
+            width: 100%;
+            max-width: 600px;
+            box-sizing: border-box;
+            margin: 20px auto;
+            position: relative;
+            z-index: 1;
+        }
+
+        h2 {
+            color: #dc3545;
+            text-align: center;
+            margin-bottom: 10px;
+            font-size: 2rem;
+            animation: heartbeat 1.5s infinite;
+        }
+
+        @keyframes heartbeat {
+            0%, 20%, 40%, 60%, 100% { transform: scale(1); }
+            10% { transform: scale(1.1); }
+            30% { transform: scale(1.05); }
+            50% { transform: scale(1.1); }
+            70% { transform: scale(1.05); }
+        }
+
+        .neon {
+            display: block;
+            margin: 0 auto;
+            width: 100%;
+            max-width: 600px;
+            height: 50px;
+            filter: drop-shadow(0 0 5px rgba(220, 53, 69, 0.7))
+                    drop-shadow(0 0 10px rgba(220, 53, 69, 0.7))
+                    drop-shadow(0 0 20px rgba(220, 53, 69, 0.7));
+        }
+
+        .form-control {
+            border: 1px solid #ced4da;
+            border-radius: 5px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            transition: box-shadow 0.3s ease;
+        }
+
+        .form-control:focus {
+            box-shadow: 0 0 8px rgba(255, 100, 0, 0.5);
+            border-color: #ff6400;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #ff6400, #dc3545);
+            border: none;
+            font-weight: bold;
+            letter-spacing: 0.5px;
+        }
+
+        .btn-primary:hover {
+            background: linear-gradient(135deg, #dc3545, #ff6400);
+        }
+
+        .progress-msg {
+            display: none;
+            text-align: center;
+            margin: 10px 0;
+            color: #dc3545;
+            font-weight: bold;
+        }
+
+        @media (max-width: 414px) {
+            .form-container { padding: 15px; }
+            h2 { font-size: 1.5rem; }
+        }
+    </style>
+</head>
+<body>
+
+<canvas id="fireCanvas"></canvas>
+
+<div class="form-container">
+    <h2>HIPL SUPPORT DESK</h2>
+
+    <svg class="neon" viewBox="0 0 600 100">
+        <path fill="none" stroke="#dc3545" stroke-width="5" d="M 0 50 Q 50 10, 100 50 T 200 50 T 300 50 Q 350 10, 400 50 T 500 50 T 600 50" />
+        <animate attributeName="stroke-dasharray" from="0, 600" to="600, 0" dur="1s" repeatCount="indefinite" />
+        <animate attributeName="stroke-dashoffset" from="0" to="600" dur="1s" repeatCount="indefinite" />
+    </svg>
+
+    <p style="color: red; font-weight: bold;">* All fields are mandatory</p>
+
+    <form id="requestForm" name="requestForm">
+        <div class="form-group">
+            <label for="name">Name: <span style="color:red">*</span></label>
+            <input type="text" class="form-control" id="name" name="name" required>
+        </div>
+
+        <div class="form-group">
+            <label for="phone">Phone Number: <span style="color:red">*</span></label>
+            <input type="text" class="form-control" id="phone" name="phone" required>
+        </div>
+
+        <div class="form-group">
+            <label for="email">Email Address: <span style="color:red">*</span></label>
+            <input type="email" class="form-control" id="email" name="email" required>
+        </div>
+
+        <div class="form-group">
+            <label for="plant">Plant: <span style="color:red">*</span></label>
+            <select class="form-control" id="plant" name="plant" required>
+                <option value="" disabled selected>Select an option</option>
+                <option value="Hemraj Industries Pvt Ltd">Hemraj Industries Pvt Ltd</option>
+                <option value="RadhaShyam Industries Pvt Ltd">RadhaShyam Industries Pvt Ltd</option>
+                <option value="Hemraj Rice Mill">Hemraj Rice Mill</option>
+                <option value="Rice Field">Rice Field Agri Industries Ltd</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label for="department">Department: <span style="color:red">*</span></label>
+            <select class="form-control" id="department" name="department" required>
+                <option value="" disabled selected>Select an option</option>
+                <option value="HR">HR</option>
+                <option value="Account & Sale">Account & Sale</option>
+                <option value="Purchase">Purchase</option>
+                <option value="Ref & Solvant">Ref & Solvant</option>
+                <option value="Power Plant">Power Plant</option>
+                <option value="Store">Store</option>
+                <option value="Others">Others</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label for="requestType">Request Type: <span style="color:red">*</span></label>
+            <select class="form-control" id="requestType" name="requestType" required>
+                <option value="" disabled selected>Select an option</option>
+                <option value="Software">Software</option>
+                <option value="Hardware">Hardware</option>
+                <option value="Camera Problem">Camera Problem</option>
+                <option value="Telephone Problem">Telephone Problem</option>
+                <option value="Network Problem">Network Problem</option>
+                <option value="MIS /Web app Support">MIS /Web app Support</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label for="priority">Priority: <span style="color:red">*</span></label>
+            <select class="form-control" id="priority" name="priority" required>
+                <option value="" disabled selected>Select an option</option>
+                <option value="High">High</option>
+                <option value="Medium">Medium</option>
+                <option value="Low">Low</option>
+            </select>
+        </div>
+
+        <!--
+            FIX: Field name changed from "requesttypeName" to "workByName"
+            Make sure your Google Apps Script reads e.parameter.workByName
+            and maps it to column K in your sheet.
+        -->
+        <div class="form-group">
+            <label for="workByName">Work By Name: <span style="color:red">*</span></label>
+            <select class="form-control" id="workByName" name="workByName" required>
+                <option value="" disabled selected>Select an option</option>
+                <option value="Subhankar">Subhankar</option>
+                <option value="Binod">Binod</option>
+                <option value="Goutam">Goutam</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label for="description">Problem Description: <span style="color:red">*</span></label>
+            <textarea class="form-control" id="description" name="description" rows="4" required></textarea>
+        </div>
+
+        <input type="submit" class="btn btn-primary btn-block" value="Submit">
+        <div class="progress-msg" id="progressMsg">Submitting your request...</div>
+    </form>
+
+    <dialog id="submissionDialog">
+        <p>&#10003; Form submitted successfully!</p>
+        <button id="closeDialogButton" class="btn btn-secondary">Close</button>
+    </dialog>
+</div>
+
+<script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.2/dist/umd/popper.min.js"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+
+<script>
+    /* ── Fire / Spark Particle System ── */
+    const canvas = document.getElementById('fireCanvas');
+    const ctx = canvas.getContext('2d');
+
+    function resize() {
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+    }
+    resize();
+    window.addEventListener('resize', resize);
+
+    const particles = [];
+
+    function spawnSpark(x, y) {
+        const count = Math.floor(Math.random() * 3) + 2;
+        for (let i = 0; i < count; i++) {
+            const angle = Math.random() * Math.PI * 2;
+            const speed = Math.random() * 4 + 1;
+            particles.push({
+                x, y,
+                vx: Math.cos(angle) * speed,
+                vy: Math.sin(angle) * speed - (Math.random() * 3 + 2),
+                life: 1,
+                decay: Math.random() * 0.015 + 0.008,
+                size: Math.random() * 4 + 2,
+                hue: Math.random() * 40,          // 0–40 = red-orange-yellow
+                type: Math.random() > 0.5 ? 'spark' : 'ember'
+            });
+        }
+    }
+
+    function spawnFlame(x, y) {
+        particles.push({
+            x, y,
+            vx: (Math.random() - 0.5) * 1.5,
+            vy: -(Math.random() * 3 + 2),
+            life: 1,
+            decay: Math.random() * 0.012 + 0.006,
+            size: Math.random() * 12 + 6,
+            hue: Math.random() * 40,
+            type: 'flame'
+        });
+    }
+
+    /* Spawn sources: bottom-left and bottom-right corners */
+    function spawnBurst() {
+        const sources = [
+            { x: Math.random() * 80 + 10, y: canvas.height },
+            { x: canvas.width - Math.random() * 80 - 10, y: canvas.height },
+            { x: canvas.width / 2 + (Math.random() - 0.5) * 100, y: canvas.height }
+        ];
+        const src = sources[Math.floor(Math.random() * sources.length)];
+        spawnSpark(src.x, src.y);
+        spawnFlame(src.x, src.y);
+    }
+
+    function animateFire() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+        for (let i = particles.length - 1; i >= 0; i--) {
+            const p = particles[i];
+            p.x += p.vx;
+            p.y += p.vy;
+            p.vx *= 0.98;
+            p.vy -= 0.05;   // upward drift
+            p.life -= p.decay;
+
+            if (p.life <= 0) { particles.splice(i, 1); continue; }
+
+            ctx.save();
+            ctx.globalAlpha = p.life * 0.85;
+
+            if (p.type === 'flame') {
+                const grad = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, p.size * p.life);
+                grad.addColorStop(0, `hsla(${60 - p.hue}, 100%, 90%, 1)`);
+                grad.addColorStop(0.4, `hsla(${30 - p.hue}, 100%, 60%, 0.8)`);
+                grad.addColorStop(1, `hsla(${p.hue}, 100%, 30%, 0)`);
+                ctx.fillStyle = grad;
+                ctx.beginPath();
+                ctx.arc(p.x, p.y, p.size * p.life, 0, Math.PI * 2);
+                ctx.fill();
+            } else if (p.type === 'spark') {
+                ctx.strokeStyle = `hsla(${60 - p.hue * p.life}, 100%, 70%, 1)`;
+                ctx.lineWidth = p.size * 0.3;
+                ctx.shadowBlur = 6;
+                ctx.shadowColor = `hsla(${p.hue}, 100%, 60%, 0.8)`;
+                ctx.beginPath();
+                ctx.moveTo(p.x, p.y);
+                ctx.lineTo(p.x - p.vx * 3, p.y - p.vy * 3);
+                ctx.stroke();
+            } else {
+                ctx.fillStyle = `hsla(${p.hue * 2}, 100%, 65%, 1)`;
+                ctx.shadowBlur = 8;
+                ctx.shadowColor = `hsla(${p.hue}, 100%, 50%, 0.9)`;
+                ctx.beginPath();
+                ctx.arc(p.x, p.y, p.size * p.life * 0.5, 0, Math.PI * 2);
+                ctx.fill();
+            }
+            ctx.restore();
+        }
+
+        if (particles.length < 300) {
+            spawnBurst();
+        }
+
+        requestAnimationFrame(animateFire);
+    }
+    animateFire();
+
+    /* ── Form Submission ── */
+    const dialog = document.getElementById('submissionDialog');
+    const scriptURL = 'https://script.google.com/macros/s/AKfycbwPXBRq1sIyR-ch6rG8YfBLG9vpZE8FvKX89bkzCCZ0pVfRPTNHkR3QEVslA1FbV-IA4g/exec';
+    const form = document.forms['requestForm'];
+
+    form.addEventListener('submit', function(e) {
+        e.preventDefault();
+        document.getElementById('progressMsg').style.display = 'block';
+        fetch(scriptURL, { method: 'POST', body: new FormData(form) })
+            .then(function() {
+                alert('Success!');
+                form.reset();
+                dialog.showModal();
+                document.getElementById('requestForm').style.display = 'none';
+                document.getElementById('progressMsg').style.display = 'none';
+            })
+            .catch(function(error) {
+                console.error('Error!', error.message);
+                document.getElementById('progressMsg').style.display = 'none';
+            });
+    });
+
+    document.getElementById('closeDialogButton').addEventListener('click', function() {
+        dialog.close();
+    });
+</script>
+</body>
+</html>
