@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Support Desk</title>
+<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+<style>
+*{box-sizing:border-box;}
+body{background:#1a1a2e;display:flex;justify-content:center;align-items:flex-start;min-height:100vh;margin:0;overflow-x:hidden;}
+#fireCanvas{position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:0;}
+
+/* Main layout wrapper */
+#layout{display:flex;justify-content:center;align-items:flex-start;width:100%;max-width:800px;margin:20px auto;padding:0 10px;position:relative;z-index:1;gap:12px;}
+
+.form-container{background:rgba(255,255,255,0.95);padding:28px;border-radius:16px;box-shadow:0 4px 40px rgba(255,100,0,0.4);flex:1;min-width:0;}
+h2{color:#dc3545;text-align:center;margin-bottom:8px;font-size:1.7rem;animation:heartbeat 1.5s infinite;}
+@keyframes heartbeat{0%,20%,40%,60%,100%{transform:scale(1);}10%{transform:scale(1.1);}30%{transform:scale(1.05);}50%{transform:scale(1.1);}70%{transform:scale(1.05);}}
+.neon{display:block;margin:0 auto;width:100%;height:36px;filter:drop-shadow(0 0 5px rgba(220,53,69,0.7));}
+.form-control{border:1px solid #ced4da;border-radius:5px;transition:box-shadow 0.3s,border-color 0.3s;}
+.form-control:focus{box-shadow:0 0 8px rgba(255,100,0,0.5);border-color:#ff6400;outline:none;}
+.form-control.field-highlight{border-color:#ff6400!important;box-shadow:0 0 12px rgba(255,100,0,0.7)!important;}
+.btn-primary{background:linear-gradient(135deg,#ff6400,#dc3545);border:none;font-weight:bold;}
+.btn-primary:hover{background:linear-gradient(135deg,#dc3545,#ff6400);}
+.progress-msg{display:none;text-align:center;margin:10px 0;color:#dc3545;font-weight:bold;}
+
+/* ROBOT COLUMN - sits right next to form */
+#robot-col{display:flex;flex-direction:column;align-items:center;justify-content:flex-start;padding-top:20px;width:100px;flex-shrink:0;position:sticky;top:20px;align-self:flex-start;}
+
+.speech-bubble{background:#fff;border:2px solid #ff6400;border-radius:12px;padding:7px 10px;font-size:11px;font-weight:700;color:#1a1a2e;width:100px;text-align:center;position:relative;box-shadow:0 2px 10px rgba(255,100,0,0.35);line-height:1.4;opacity:0;transition:opacity 0.3s ease;margin-bottom:8px;word-break:break-word;}
+.speech-bubble.visible{opacity:1;}
+.speech-bubble::after{content:'';position:absolute;bottom:-9px;left:50%;transform:translateX(-50%);border:5px solid transparent;border-top-color:#ff6400;}
+.speech-bubble::before{content:'';position:absolute;bottom:-6px;left:50%;transform:translateX(-50%);border:4px solid transparent;border-top-color:#fff;z-index:1;}
+
+/* Dancing */
+@keyframes dance{0%{transform:rotate(-7deg) translateY(0);}25%{transform:rotate(7deg) translateY(-4px);}50%{transform:rotate(-5deg) translateY(0);}75%{transform:rotate(5deg) translateY(-3px);}100%{transform:rotate(-7deg) translateY(0);}}
+@keyframes armL{0%,100%{transform:rotate(-30deg);}50%{transform:rotate(30deg);}}
+@keyframes armR{0%,100%{transform:rotate(30deg);}50%{transform:rotate(-30deg);}}
+@keyframes legL{0%,100%{transform:rotate(-20deg);}50%{transform:rotate(20deg);}}
+@keyframes legR{0%,100%{transform:rotate(20deg);}50%{transform:rotate(-20deg);}}
+@keyframes eyeBlink{0%,90%,100%{transform:scaleY(1);}95%{transform:scaleY(0.1);}}
+@keyframes antBob{0%,100%{transform:translateY(0);}50%{transform:translateY(-2px);}}
+
+#robot-svg{animation:dance 0.5s ease-in-out infinite;}
+.arm-left{transform-origin:85% 10%;animation:armL 0.5s ease-in-out infinite;}
+.arm-right{transform-origin:15% 10%;animation:armR 0.5s ease-in-out infinite;}
+.leg-left{transform-origin:50% 0%;animation:legL 0.5s ease-in-out infinite;}
+.leg-right{transform-origin:50% 0%;animation:legR 0.5s ease-in-out infinite;}
+.eye-group{animation:eyeBlink 3s ease-in-out infinite;}
+.ant-tip{animation:antBob 0.8s ease-in-out infinite;}
+
+/* Mobile: robot goes to bottom center */
+@media(max-width:600px){
+  #layout{flex-direction:column;align-items:center;gap:0;}
+  #robot-col{width:100%;flex-direction:row;justify-content:center;align-items:center;padding:10px 0 0 0;position:static;gap:12px;}
+  .speech-bubble{margin-bottom:0;margin-left:10px;width:160px;font-size:12px;}
+  .speech-bubble::after,.speech-bubble::before{display:none;}
+  #robot-svg{width:60px;height:82px;}
+  .form-container{border-radius:12px;padding:18px;}
+}
+</style>
+</head>
+<body>
+<canvas id="fireCanvas"></canvas>
+
+<div id="layout">
+  <!-- FORM -->
+  <div class="form-container">
+    <h2>HIPL SUPPORT DESK</h2>
+    <svg class="neon" viewBox="0 0 560 50">
+      <path fill="none" stroke="#dc3545" stroke-width="4" d="M 0 25 Q 46 5,93 25 T 186 25 T 280 25 Q 326 5,373 25 T 466 25 T 560 25"/>
+      <animate attributeName="stroke-dasharray" from="0,560" to="560,0" dur="1s" repeatCount="indefinite"/>
+    </svg>
+    <p style="color:red;font-weight:bold;margin-top:8px;font-size:13px;">* All fields are mandatory</p>
+
+    <form id="requestForm" name="requestForm">
+      <div class="form-group">
+        <label for="name">Name <span style="color:red">*</span></label>
+        <input type="text" class="form-control" id="name" name="name" required placeholder="Your full name">
+      </div>
+      <div class="form-group">
+        <label for="phone">Phone <span style="color:red">*</span></label>
+        <input type="text" class="form-control" id="phone" name="phone" required placeholder="10-digit number">
+      </div>
+      <div class="form-group">
+        <label for="email">Email <span style="color:red">*</span></label>
+        <input type="email" class="form-control" id="email" name="email" required placeholder="you@company.com">
+      </div>
+      <div class="form-group">
+        <label for="plant">Plant <span style="color:red">*</span></label>
+        <select class="form-control" id="plant" name="plant" required>
+          <option value="" disabled selected>Select plant</option>
+          <option>Hemraj Industries Pvt Ltd</option>
+          <option>RadhaShyam Industries Pvt Ltd</option>
+          <option>Hemraj Rice Mill</option>
+          <option value="Rice Field">Rice Field Agri Industries Ltd</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label for="department">Department <span style="color:red">*</span></label>
+        <select class="form-control" id="department" name="department" required>
+          <option value="" disabled selected>Select dept</option>
+          <option>HR</option><option>Account & Sale</option><option>Purchase</option>
+          <option>Ref & Solvant</option><option>Power Plant</option><option>Store</option><option>Others</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label for="requestType">Request Type <span style="color:red">*</span></label>
+        <select class="form-control" id="requestType" name="requestType" required>
+          <option value="" disabled selected>Select type</option>
+          <option>Software</option><option>Hardware</option><option>Camera Problem</option>
+          <option>Telephone Problem</option><option>Network Problem</option><option>MIS /Web app Support</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label for="priority">Priority <span style="color:red">*</span></label>
+        <select class="form-control" id="priority" name="priority" required>
+          <option value="" disabled selected>Select priority</option>
+          <option>High</option><option>Medium</option><option>Low</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label for="workByName">Work By <span style="color:red">*</span></label>
+        <select class="form-control" id="workByName" name="workByName" required>
+          <option value="" disabled selected>Select technician</option>
+          <option>Subhankar</option><option>Binod</option><option>Goutam</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label for="description">Problem <span style="color:red">*</span></label>
+        <textarea class="form-control" id="description" name="description" rows="4" required placeholder="Describe briefly..."></textarea>
+      </div>
+      <input type="submit" class="btn btn-primary btn-block" value="Submit">
+      <div class="progress-msg" id="progressMsg">⏳ Submitting...</div>
+    </form>
+
+    <dialog id="submissionDialog">
+      <p>&#10003; Form submitted successfully!</p>
+      <button id="closeDialogButton" class="btn btn-secondary">Close</button>
+    </dialog>
+  </div>
+
+  <!-- ROBOT COLUMN (right of form) -->
+  <div id="robot-col">
+    <div class="speech-bubble" id="speechBubble">👋 Welcome!</div>
+    <svg id="robot-svg" width="80" height="105" viewBox="0 0 70 95" xmlns="http://www.w3.org/2000/svg">
+      <g class="ant-tip">
+        <line x1="35" y1="10" x2="35" y2="3" stroke="#888" stroke-width="2" stroke-linecap="round"/>
+        <circle cx="35" cy="2" r="3" fill="#ff6400"/>
+        <circle cx="35" cy="2" r="1.5" fill="#fff" opacity="0.6"/>
+      </g>
+      <rect x="14" y="10" width="42" height="28" rx="7" fill="#4a8fd4" stroke="#2c5f9e" stroke-width="1.5"/>
+      <rect x="17" y="13" width="18" height="8" rx="4" fill="rgba(255,255,255,0.18)"/>
+      <g class="eye-group">
+        <rect x="18" y="17" width="11" height="8" rx="3" fill="#fff"/>
+        <circle cx="23" cy="21" r="3" fill="#1a1a6e"/>
+        <circle cx="24.5" cy="19.5" r="1" fill="#fff" opacity="0.8"/>
+        <rect x="41" y="17" width="11" height="8" rx="3" fill="#fff"/>
+        <circle cx="46" cy="21" r="3" fill="#1a1a6e"/>
+        <circle cx="47.5" cy="19.5" r="1" fill="#fff" opacity="0.8"/>
+      </g>
+      <rect x="21" y="30" width="28" height="5" rx="2.5" fill="#2c5f9e"/>
+      <rect x="24" y="31" width="4" height="3" rx="1.5" fill="#6ab0ff" opacity="0.7"/>
+      <rect x="31" y="31" width="4" height="3" rx="1.5" fill="#6ab0ff" opacity="0.7"/>
+      <rect x="38" y="31" width="4" height="3" rx="1.5" fill="#6ab0ff" opacity="0.7"/>
+      <rect x="11" y="40" width="48" height="30" rx="6" fill="#5ba0e8" stroke="#2c5f9e" stroke-width="1.5"/>
+      <rect x="15" y="44" width="40" height="20" rx="4" fill="#3a7bd5"/>
+      <circle cx="25" cy="54" r="4" fill="#ff4444" opacity="0.9"/>
+      <circle cx="35" cy="54" r="4" fill="#44dd44" opacity="0.9"/>
+      <circle cx="45" cy="54" r="4" fill="#ffcc00" opacity="0.9"/>
+      <g class="arm-left">
+        <rect x="1" y="41" width="9" height="21" rx="4" fill="#4a8fd4" stroke="#2c5f9e" stroke-width="1"/>
+        <circle cx="5.5" cy="63" r="4" fill="#3a7bd5"/>
+      </g>
+      <g class="arm-right">
+        <rect x="60" y="41" width="9" height="21" rx="4" fill="#4a8fd4" stroke="#2c5f9e" stroke-width="1"/>
+        <circle cx="64.5" cy="63" r="4" fill="#3a7bd5"/>
+      </g>
+      <rect x="17" y="68" width="36" height="7" rx="3" fill="#3a7bd5"/>
+      <g class="leg-left">
+        <rect x="18" y="74" width="13" height="14" rx="4" fill="#4a8fd4" stroke="#2c5f9e" stroke-width="1"/>
+        <rect x="16" y="85" width="17" height="6" rx="3" fill="#2c5f9e"/>
+      </g>
+      <g class="leg-right">
+        <rect x="39" y="74" width="13" height="14" rx="4" fill="#4a8fd4" stroke="#2c5f9e" stroke-width="1"/>
+        <rect x="37" y="85" width="17" height="6" rx="3" fill="#2c5f9e"/>
+      </g>
+    </svg>
+  </div>
+</div>
+
+<script>
+/* FIRE */
+const canvas=document.getElementById('fireCanvas'),ctx=canvas.getContext('2d');
+function resize(){canvas.width=innerWidth;canvas.height=innerHeight;}
+resize();window.addEventListener('resize',resize);
+const particles=[];
+function spawnFlame(x,y){particles.push({x,y,vx:(Math.random()-.5)*1.2,vy:-(Math.random()*2.5+1.5),life:1,decay:Math.random()*.012+.006,size:Math.random()*10+5,hue:Math.random()*40,type:'flame'});}
+function spawnSpark(x,y){for(let i=0;i<3;i++){const a=Math.random()*Math.PI*2,s=Math.random()*3+1;particles.push({x,y,vx:Math.cos(a)*s,vy:Math.sin(a)*s-(Math.random()*2+2),life:1,decay:Math.random()*.015+.01,size:Math.random()*3+1,hue:Math.random()*40,type:'spark'});}}
+function animateFire(){ctx.clearRect(0,0,canvas.width,canvas.height);
+for(let i=particles.length-1;i>=0;i--){const p=particles[i];p.x+=p.vx;p.y+=p.vy;p.vx*=.98;p.vy-=.04;p.life-=p.decay;if(p.life<=0){particles.splice(i,1);continue;}ctx.save();ctx.globalAlpha=p.life*.8;
+if(p.type==='flame'){const g=ctx.createRadialGradient(p.x,p.y,0,p.x,p.y,p.size*p.life);g.addColorStop(0,`hsla(${60-p.hue},100%,90%,1)`);g.addColorStop(.4,`hsla(${30-p.hue},100%,60%,.8)`);g.addColorStop(1,`hsla(${p.hue},100%,30%,0)`);ctx.fillStyle=g;ctx.beginPath();ctx.arc(p.x,p.y,p.size*p.life,0,Math.PI*2);ctx.fill();}
+else{ctx.strokeStyle=`hsla(${60-p.hue*p.life},100%,70%,1)`;ctx.lineWidth=p.size*.3;ctx.beginPath();ctx.moveTo(p.x,p.y);ctx.lineTo(p.x-p.vx*3,p.y-p.vy*3);ctx.stroke();}ctx.restore();}
+if(particles.length<200){const x=Math.random()<.33?Math.random()*80+10:Math.random()<.5?canvas.width-Math.random()*80-10:canvas.width/2+(Math.random()-.5)*80;spawnFlame(x,canvas.height);if(Math.random()>.6)spawnSpark(x,canvas.height);}
+requestAnimationFrame(animateFire);}
+animateFire();
+
+/* ROBOT */
+const bubble=document.getElementById('speechBubble');
+const fieldGuide=[
+  {id:'name',       msg:'📝 Full name here'},
+  {id:'phone',      msg:'📞 10-digit number'},
+  {id:'email',      msg:'📧 Valid email'},
+  {id:'plant',      msg:'🏭 Your plant'},
+  {id:'department', msg:'🏢 Your dept'},
+  {id:'requestType',msg:'🔧 Issue type?'},
+  {id:'priority',   msg:'⚡ High/Med/Low'},
+  {id:'workByName', msg:'👷 Technician'},
+  {id:'description',msg:'✍️ Brief problem'},
+];
+
+function showBubble(text){
+  bubble.classList.remove('visible');
+  setTimeout(()=>{bubble.textContent=text;bubble.classList.add('visible');},150);
+}
+
+setTimeout(()=>showBubble('👋 Welcome! Let\'s go!'),400);
+setTimeout(()=>showBubble('⬇️ Fill from Name'),2800);
+
+fieldGuide.forEach(entry=>{
+  const el=document.getElementById(entry.id);
+  if(!el)return;
+  el.addEventListener('focus',()=>{
+    document.querySelectorAll('.form-control').forEach(e=>e.classList.remove('field-highlight'));
+    el.classList.add('field-highlight');
+    showBubble(entry.msg);
+  });
+  el.addEventListener('blur',()=>el.classList.remove('field-highlight'));
+});
+
+const dialog=document.getElementById('submissionDialog');
+const scriptURL='https://script.google.com/macros/s/AKfycbwPXBRq1sIyR-ch6rG8YfBLG9vpZE8FvKX89bkzCCZ0pVfRPTNHkR3QEVslA1FbV-IA4g/exec';
+const form=document.forms['requestForm'];
+form.addEventListener('submit',function(e){
+  e.preventDefault();
+  document.getElementById('progressMsg').style.display='block';
+  showBubble('⏳ Sending...');
+  fetch(scriptURL,{method:'POST',body:new FormData(form)})
+    .then(()=>{form.reset();document.getElementById('requestForm').style.display='none';document.getElementById('progressMsg').style.display='none';dialog.showModal();showBubble('🎊 Done! Great job!');})
+    .catch(err=>{console.error(err);document.getElementById('progressMsg').style.display='none';showBubble('❌ Failed! Retry.');});
+});
+document.getElementById('closeDialogButton').addEventListener('click',()=>dialog.close());
+</script>
+</body>
+</html>
